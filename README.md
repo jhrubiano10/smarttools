@@ -33,6 +33,8 @@ Se ha creado el servicio que lista los vídeos de un concuros.
 http://localhost:3000/getvideos/token_video/pagina
 ```
 
+Se puede consultar los servicios creados en el archivo [rutas.js]
+
 # Servicio para conversión de vídeos.
 
 Para el funcionamiento de este, previamente se debe instar ffmpeg.
@@ -58,3 +60,5 @@ Se creará una serie de directorios dentro de la carpeta `uploadedfiles`
 License
 ----
 MIT
+
+[rutas.js]:https://github.com/jhrubiano10/smarttools/blob/master/modules/rutas.js
