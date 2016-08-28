@@ -52,8 +52,8 @@ Se creará una serie de directorios dentro de la carpeta `uploadedfiles`
 
 ### Autores
 
-*Camilo Medina
-*Jorge Rubaino
+* Camilo Medina
+* Jorge Rubaino
 
 License
 ----
