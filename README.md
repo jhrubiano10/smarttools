@@ -18,6 +18,8 @@ npm install
 * Subir vídeo a un concurso.
 * Realizar conversión de vídeo.
 
+Para la autenticación se ha hecho uso de [passport], utilizando una estrategia local
+
 # Requerimientos que hacen falta
 
 * Listar vídeos de un concurso.
@@ -52,6 +54,10 @@ Se creará una serie de directorios dentro de la carpeta `uploadedfiles`
 		* convert -> Guarda los vídeos convertidos.
 		* thumbnail -> Guarda la imagen que representa al vídeo.
 
+# Base de datos.
+
+La Base de datos que se ha establecido hasta el momento es Mysql
+
 ### Autores
 
 * Camilo Medina
@@ -62,3 +68,4 @@ License
 MIT
 
 [rutas.js]:https://github.com/jhrubiano10/smarttools/blob/master/modules/rutas.js
+[passport]:http://passportjs.org/
