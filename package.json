@@ -13,10 +13,12 @@
     "express-mailer": "^0.3.0",
     "express-session": "^1.12.0",
     "fluent-ffmpeg": "^2.1.0",
+    "moment": "^2.14.1",
     "mysql": "^2.9.0",
     "passport": "^0.3.0",
     "passport-local": "^1.0.0",
     "serve-favicon": "^2.2.0",
+    "striptags": "^2.1.1",
     "swig": "^1.4.2"
   },
   "devDependencies": {},

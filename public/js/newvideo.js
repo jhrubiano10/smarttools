@@ -28,5 +28,63 @@ $(function()
             $("#nombreVideo").html(nombreVideo);
 		}
 	});
+
+    $('#uploadForm').submit(function(event)
+    {
+        event.preventDefault();
+        event.stopPropagation();
+        if($("#upload").val() === "")
+        {
+            sweetAlert("Vídeo", "Por favor selecciona el vídeo", "error");
+        }
+        else
+        {
+            $("form").hide("fast");
+            $("#progreso").show("fast");
+            $("#tituloSube").html("Subiendo: " + $("#titulo_video").val());
+            $("#progress").width("0%").html("0%");
+            $.ajax(
+            {
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: new FormData( this ),
+                processData: false,
+                contentType: false, 
+                xhr: function()
+                {
+                    //upload Progress
+                    var xhr = $.ajaxSettings.xhr();
+                    if (xhr.upload)
+                    {
+                        xhr.upload.addEventListener('progress', function(event) 
+                        {
+                            var percent = 0;
+                            var position = event.loaded || event.position;
+                            var total = event.total;
+                            if (event.lengthComputable) {
+                                percent = Math.ceil(position / total * 100);
+                            }
+                            $("#progress").width(percent + "%").html( + percent + "%");
+                        }, true);
+                    }
+                    return xhr;
+                }
+            }).done(function( data )
+            {
+                console.log(data);
+                if(data.error)
+                {
+                    sweetAlert("Error", data.data, "error");
+                    $("form").show("fast");
+                    $("#progreso").hide("fast");
+                }
+                else
+                {
+                    $("#progreso").hide("fast");
+                    $("#termina").show("fast");
+                }               
+            });
+        }
+        return false;
+    });
 });
-  

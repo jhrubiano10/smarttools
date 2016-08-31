@@ -170,7 +170,7 @@
                     </div>
                     <hr>
                     <div class="col-lg-12">
-                        <form ref = 'uploadForm' id = 'uploadForm' action = '/newconcurso' method='post' encType = "multipart/form-data" role="form">
+                        <form ref = 'uploadForm' id = 'uploadForm' action = '/newconcurso' method='post' encType = "multipart/form-data" role = "form">
                             <div class="form-group">
                                 <label>Nombre del concurso</label>
                                 <input class="form-control" name = "nombre_concurso" id = "nombre_concurso" required value = "{{concurso.nombre_concurso}}">
@@ -179,38 +179,30 @@
                                 <label>Url del concurso</label>
                                 <input class="form-control" placeholder="Url del concurso"  name = "url_concurso" id = "url_concurso" required value = "{{concurso.url_concurso}}">
                                 <p class="help-block">La url no puede contener espacios.</p>
-                            </div>
-                            <div class="form-group">
-                                <label>Duración del vídeo en minutos</label>
-                                <select class="form-control" name = "duracion_video">
-                                    <option>05</option>
-                                    <option>15</option>
-                                    <option>20</option>
-                                    <option>25</option>
-                                    <option>30</option>
-                                    <option>35</option>
-                                    <option>40</option>
-                                    <option>45</option>
-                                    <option>50</option>
-                                    <option>55</option>
-                                </select>
-                            </div>
+                            </div>                            
                             <div class="form-group">
                                 <label>Fecha de inicio</label>
-                                <input class="form-control" type = "date" name = "fecha_inicial" id = "fecha_inicial" required value = "{{concurso.fecha_inicial}}">
+                                <input class="form-control" type = "date" name = "fecha_inicial" id = "fecha_inicial" required value = "{{concurso.fecha_inicial_string}}" format="dd/MM/yyyy">
                             </div>
                             <div class="form-group">
                                 <label>Fecha Final</label>
-                                <input class="form-control" type = "date" name = "fecha_final" id = "fecha_final" required value = "{{concurso.fecha_final}}">
+                                <input class="form-control" type = "date" name = "fecha_final" id = "fecha_final" required value = "{{concurso.fecha_final_string}}" format="dd/MM/yyyy">
                             </div>
                             <div class="form-group">
-                                <label>Descripción Premio</label>
+                                <label>Descripción del Premio</label>
                                 <textarea class="summernote" name = "descripcion" id = "descripcion">{{concurso.descripcion}}</textarea>
                             </div>
                             <div class="form-group">
-                                <label>Banner del concurso</label>
-                                <input type="file" name="sampleFile" />
-                                <p class="help-block">La imagen que se mostrará en el concurso</p>
+                                <!-- <label>Banner del concurso</label> //-->
+                                <div align = "center">                            
+                                    <a href="javascript:;" class="btn btn-danger" style="padding:13px; width: 50%;" id = "upbanner">
+                                            <span class="glyphicon glyphicon-cloud-upload"></span> Subir Banner
+                                    </a><br>
+                                    <h4><div id = "nombreArchivo">Selecciona la Imagen</div></h4>
+                                    <!-- <input type="file" name="sampleFile" /> //-->
+                                    <input type="file" style="display: none" name="sampleFile" id = "upload" accept=".jpg, .png, .jpeg|images/*"/>
+                                </div>
+                                <!-- <p class="help-block">La imagen que se mostrará en el concurso</p> //-->
                                 {% if concurso.banner %}
                                     <hr>
                                     <center>
@@ -221,11 +213,11 @@
                             </div>
                             <hr>
                             <div class="form-group">
-                                <button type="submit" class="btn btn-lg btn-success btn-block">Guardar</button>
+                                <input type = "hidden" value = "{{concurso.token_concurso}}" id = "token_concurso" name = "token_concurso"></input>
+                                <button type = "submit" class = "btn btn-lg btn-success btn-block">Guardar</button>
                             </div>
                         </form>		
-                    </div>
-                    
+                    </div>                    
                     <!-- /.col-lg-12 -->
                 </div>
                 <!-- /.row -->

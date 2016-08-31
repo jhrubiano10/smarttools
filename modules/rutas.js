@@ -133,17 +133,24 @@ let newConcurso = (req, res) =>
     }
     else
     {
-		console.log(req.params.id);
+		//console.log(req.params.id);
 		if(req.params.id !== "0")
 		{
-			console.log("INGRESA A ESTE PUNTO");
+			//console.log("INGRESA A ESTE PUNTO");
 			concurso.getConcurso(1, req.params.id, (err, concurso) =>
 			{
-				console.log(concurso);
-				res.render("newconcurso", { 
-					data		:  req.user, 
-					concurso	: concurso
-				});
+				console.log(concurso.length);
+				if(concurso.length === 1)
+				{
+					res.render("newconcurso", { 
+						data		: req.user, 
+						concurso	: concurso[0]
+					});
+				}
+				else
+				{
+					res.redirect('/login');
+				}
 			});
 		}
 		else
@@ -169,7 +176,8 @@ let newConcursoPost = (req, res) =>
 		concurso.crearConcurso(req, (err, data) => 
 		{
 			console.log("Guarda");
-			res.redirect('/admin');
+			res.json({err, data});
+			//res.redirect('/admin');
 			/*
 			if(err)
 			{
@@ -223,6 +231,21 @@ let listarConcursos = (req, res) =>
 	}
 };
 
+let eliminaConcurso  = (req, res) => 
+{
+	if(!req.isAuthenticated())
+    {        
+        res.json({error: true, data : "No está autenticado"});
+    }
+	else
+	{
+		concurso.eliminaConcurso(req.params.token, (err, data) => 
+		{
+			res.json({error : err, data});
+		});
+	}
+};
+
 let showConcurso = (req, res) => 
 {
 	//console.log(req.params.url);
@@ -230,9 +253,16 @@ let showConcurso = (req, res) =>
 	{
 		if(concurso)
 		{
-			res.render("concurso", {  
-				concurso	: concurso
-			});
+			if(concurso.length === 1)
+			{
+				res.render("concurso", {  
+					concurso	: concurso[0]
+				});
+			}
+			else
+			{
+				notFound404(req, res);
+			}
 		}
 		else
 		{
@@ -254,7 +284,7 @@ let newVideo = (req, res) =>
 		if(concurso)
 		{
 			res.render("newvideo", {  
-				concurso	: concurso
+				concurso	: concurso[0]
 			});
 		}
 		else
@@ -266,10 +296,11 @@ let newVideo = (req, res) =>
 
 let newVideoPost = (req, res) => 
 {
-	videos.newVideo(req, (err, data) => 
+	videos.newVideo(req, (error, data) => 
 	{
 		console.log("Guarda el vídeo...");
-		res.redirect(`/${req.body.url}`);
+		res.json({error, data});
+		//res.redirect(`/${req.body.url}`);
 		/*
 		if(err)
 		{
@@ -307,6 +338,7 @@ module.exports.newConcurso = newConcurso;
 module.exports.newConcursoPost = newConcursoPost;
 module.exports.numConcurso = numConcurso;
 module.exports.listarConcursos = listarConcursos;
+module.exports.eliminaConcurso = eliminaConcurso;
 module.exports.showConcurso = showConcurso;
 module.exports.notFound404 = notFound404;
 //Para el proceso de los vídeo...

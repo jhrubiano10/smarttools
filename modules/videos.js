@@ -1,34 +1,82 @@
 "use strict";
-const db   	        = 	require('./database'), 
-      filessystem 	= 	require('fs'), 
-	  utils			=	require('./utils'), 
-      maximoPagina  =   2;
+const db   	        = require('./database'), 
+      filessystem 	= require('fs'), 
+	  utils			= require('./utils'), 
+      moment        = require('moment'),
+      striptags     = require('striptags'),
+      maximoPagina  = 2, 
+      fecha_actual  = moment().format(), 
+      fecha_string  = moment().format("DD/MM/YYYY"), 
+      hora_string   = moment().format("hh:mm:ss a"), 
+      timestamp     = moment().unix();
 
 let newVideo = (req, callback) => 
 {
     let data = req.body;
     if (!req.files)
     {
-        callback(true, 400);
-        //res.status(400).send('No files were uploaded.');
-        //return;
+        callback(true, "No existe archivos para subir");
     }
-    let directorio        = `./uploadedfiles/${data.idadministrador}`,
-        folderVideos      = `${directorio}/videos`,
-        videoUbicacion    = {
+    let directorio      = `./uploadedfiles/${data.idadministrador}`,
+        folderVideos    = `${directorio}/videos`, 
+        extensionValida = ["avi", "wmv", "flv", "mov", "mp4"], 
+        videoUbicacion  = {
                                 original    : `${folderVideos}/org`,
                                 convertido  : `${folderVideos}/convert`,
                                 thumbnail   : `${folderVideos}/thumbnail`
                             },
-        sampleFile        =  req.files.sampleFile, 
-        nombre_archivo    =  sampleFile.name, 
-        parteNombre       =  nombre_archivo.split("."),
-        extension         =  parteNombre[parteNombre.length - 1], 
-        token_archivo     =  utils.guid(),
-        token_video       =  utils.guid(), 
-        nombreArchivo     =  `${token_archivo}.${extension}`,
-        uploadPath        = `${videoUbicacion.original}/${nombreArchivo}`;
-        //console.log(sampleFile.name);
+        sampleFile      =  req.files.sampleFile, 
+        nombre_archivo  =  sampleFile.name, 
+        parteNombre     =  nombre_archivo.split("."),
+        extension       =  parteNombre[parteNombre.length - 1].toLowerCase(), 
+        token_archivo   =  utils.guid(),
+        token_video     =  utils.guid(), 
+        nombreArchivo   =  `${token_archivo}.${extension}`,
+        uploadPath      = `${videoUbicacion.original}/${nombreArchivo}`, 
+        titulo_video    =  striptags(data.titulo_video), 
+        nombre_usuario  =  striptags(data.nombre_usuario), 
+        email           =  striptags(data.email);
+        //Primero saber que los campos estén correctos.
+        if(titulo_video === "" || nombre_usuario === "" || email === "")
+        {
+            callback(true, "No se han completado los campos");
+        }
+        else
+        {
+            //Saber si el email es válido...
+            if(!utils.validateEmail(email))
+            {
+                callback(true, "El email no es válido");
+            }
+        }
+        //Saber si el archivo que se ha subido es válido o no...
+        //video/x-flv
+        console.log(sampleFile.mimetype);
+        if(sampleFile.mimetype.split("/")[0].toLowerCase() !== "video")
+        {
+            //console.log("INGRESA ACÁ");
+            callback(true, "No es un archivo de vídeo");
+        }
+        else
+        {
+            //Saber si la extensión está entrega
+            //console.log("PASA ACÁ ACÁ");
+            let extensionBien = false;
+            for(let compara of extensionValida)
+            {
+                //console.log(`${compara} === ${extension}`);
+                if(compara === extension)
+                {
+                    extensionBien = true;
+                    break;
+                }
+            }
+            if(!extensionBien)
+            {
+                callback(true, "La extensión del vídeo no es válida");
+            }
+        }
+        //console.log(sampleFile.mimetype);
         //Crear el directorio principal, sí es que no existe...
         utils.crearDirectorio(directorio);
         //Crear la carpeta de vídeos...
@@ -44,7 +92,7 @@ let newVideo = (req, callback) =>
         {
             if (err)
             {
-                callback(true, 500);
+                callback(true, "No ha sido posible subir el vídeo");
             }
             else
             {
@@ -57,7 +105,11 @@ let newVideo = (req, callback) =>
                                 nombre_archivo, token_archivo, 
                                 extension, titulo_video,
                                 nombre_usuario, email, 
-                                mensaje
+                                mensaje, 
+                                fecha_publica, 
+                                fecha_publica_string, 
+                                hora_publica, 
+                                fecha_publica_timestamp
                             ) 
                             VALUES (
                                         1, 
@@ -65,18 +117,22 @@ let newVideo = (req, callback) =>
                                         '${data.idadministrador}',
                                         '${data.idconcurso}',
                                         '1',
-                                        '${nombre_archivo}',
+                                        '${striptags(nombre_archivo)}',
                                         '${token_archivo}',
-                                        '${extension}',
-                                        '${data.titulo_video}',
-                                        '${data.nombre_usuario}',
-                                        '${data.email}',
-                                        '${data.descripcion}'
+                                        '${striptags(extension)}',
+                                        '${titulo_video}',
+                                        '${nombre_usuario}',
+                                        '${email}',
+                                        '${data.descripcion}',
+                                        '${fecha_actual}',
+                                        '${fecha_string}',
+                                        '${hora_string}',
+                                        '${timestamp}'
                                     )`;
+                //console.log(sql);
                 db.queryMysql(sql, (err, response) => 
                 {
-                    callback(true, response);
-                    //res.send('File uploaded to ' + uploadPath);
+                    callback(false, response);
                 });
             }
         });
@@ -87,10 +143,10 @@ let listadoVideos = (req, callback) =>
 {
     let numPagina       = maximoPagina * (req.params.page - 1), 
         token_concurso  = req.params.token;
-    //SE DEBE ORDENAR POR FECHA...
     let sql = `select a.idconcurso, a.idadministrador, 
                       b.token_video, b.token_archivo, 
-                      b.titulo_video, b.nombre_usuario, b.email 
+                      b.titulo_video, b.nombre_usuario, b.email, 
+                      b.fecha_publica, b.fecha_publica_string, b.hora_publica
                       from concursos a, 
                            concursos_videos b 
                            where a.token_concurso = '${token_concurso}' and 
@@ -98,7 +154,7 @@ let listadoVideos = (req, callback) =>
                                  b.idconcurso = a.idconcurso and 
                                  b.estado = 1 and 
                                  b.estado_video = 3 and 
-                                 b.error_conversion = 0 limit ${numPagina}, ${maximoPagina}`;
+                                 b.error_conversion = 0 order by b.fecha_publica limit ${numPagina}, ${maximoPagina}`;
     db.queryMysql(sql, (err, data) => 
     {
         if (err) throw err;

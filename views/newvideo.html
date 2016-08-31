@@ -57,16 +57,13 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="/{{concurso.url_concurso}}">Página Principal</a>
+                        <a href="/{{concurso.url_concurso}}">Listado de Vídeos</a>
                     </li>
                     <li>
-                        <a href="about.html">About</a>
+                        <a href="about.html">Reglas de Juego</a>
                     </li>
                     <li>
-                        <a href="post.html">Subir vídeo</a>
-                    </li>
-                    <li>
-                        <a href="contact.html">Contact</a>
+                        <a href="/{{concurso.url_concurso}}/new">Subir vídeo</a>
                     </li>
                 </ul>
             </div>
@@ -96,7 +93,27 @@
         
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-
+                <!-- style="display:none;" //-->
+                <div id = "progreso" style="display:none;>
+                    <h2 id = "tituloSube"></h2>
+                    <div class = "progress">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%" id = "progress">
+                            0%
+                        </div>
+                    </div>
+                    <div class="alert alert-info small">
+                        Este proceso puede tomar unos segundos, por favor no cierres las ventana hasta que el proceso haya culminado.
+                    </div>
+                </div>
+                <div id = "termina" style="display:none;">
+                    <div class="alert alert-success">
+                        Hemos recibido tu video y los estamos procesado para que sea publicado. Tan pronto el video quede publicado en la página del concurso te notificaremos por email.
+                    </div>
+                    <div align="center">                                    
+                        <a href="/{{concurso.url_concurso}}" class="btn btn-default" style="margin: 10px;"><span class="glyphicon glyphicon glyphicon-th-list" style="padding:10px;"></span>Regresar al listado de vídeos</a>
+                        <a href="/{{concurso.url_concurso}}/new" class="btn btn-danger"><span class="glyphicon glyphicon-cloud-upload" style="padding:10px;"></span>Subir otro vídeo</a>
+                    </div>
+                </div>
                 <!-- Inicio //-->
                 <form ref = 'uploadForm' id = 'uploadForm' action = '/newvideo' method='post' encType = "multipart/form-data" role="form">
                     <div class="form-group">
@@ -131,15 +148,10 @@
                     <div class="form-group">
                         <input type = "hidden" name = "idadministrador" value = "{{concurso.idadministrador}}">
                         <input type = "hidden" name = "idconcurso" value = "{{concurso.idconcurso}}">
-                        <input type = "hidden" name = "url" value = "{{concurso.url_concurso}}">
-                        
                         <button type="submit" class="btn btn-lg btn-success btn-block" style="padding:13px;">Guardar</button>
                     </div>
                 </form>	
                 <!-- Fin //-->
-                
-
-
             </div>
         </div>
     </div>

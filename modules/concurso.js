@@ -1,16 +1,29 @@
 "use strict";
-const db   	        = 	require('./database'), 
-      filessystem 	= 	require('fs'), 
-	  utils			=	require('./utils'), 
-      maximoPagina  =   5;
+const db   	        = require('./database'), 
+      filessystem 	= require('fs'), 
+	  utils			= require('./utils'), 
+      moment        = require('moment'), 
+      striptags     = require('striptags'),
+      maximoPagina  = 5;
+
+let fecha_actual = moment().format(), 
+    fecha_string = moment().format("DD/MM/YYYY"), 
+    hora_string  = moment().format("hh:mm:ss a");
 
 //Para saber si un enlace ya existe...
-/*
-let existenlace   = (enlace) => 
+let existeEnlace = (enlace, token, callback) => 
 {
-
+    let sql = `select count(*) as numero 
+               from concursos 
+               where url_concurso = '${enlace}' and 
+                     estado = '1' and 
+                     token_concurso <> '${token}'`;
+    db.queryMysql(sql, (err, data) => 
+    {        
+        if (err) throw err;        
+        callback(err, data[0].numero === 0);
+    });    
 };
-*/
 
 let totalRegistrosConcurso = (idadministrador, callback) => 
 {
@@ -19,8 +32,8 @@ let totalRegistrosConcurso = (idadministrador, callback) =>
                      estado = 1`;
     db.queryMysql(sql, (err, data) => 
     {
-        console.log("REGISTROS");
-        console.log(data[0].numero);
+        //console.log("REGISTROS");
+        //console.log(data[0].numero);
         if (err) throw err;
         let total     = data[0].numero, 
             numPagina = Math.ceil(total / maximoPagina);
@@ -36,14 +49,15 @@ let listarConcursos = (req, callback) =>
     //console.log(req);
     let numPagina = maximoPagina * (req.params.page - 1); 
     let sql = `select idconcurso, token_concurso, terminado, 
-                      publicado, duracion_video, nombre_concurso, url_concurso, 
-                      fecha_inicial, fecha_final 
+                      publicado, nombre_concurso, url_concurso, 
+                      fecha_inicial_string as fecha_inicial, fecha_final_string  as fecha_final, 
+                      fecha_creacion_string as fecha_creacion, hora_creacion_string as hora
                       from concursos 
                       where idadministrador = '${req.user.idadministrador}' and 
-                            estado = 1 limit ${numPagina}, ${maximoPagina}`; 
+                            estado = 1 order by fecha_creacion limit ${numPagina}, ${maximoPagina}`; 
     db.queryMysql(sql, (err, data) => 
     {
-        if (err) throw err;        
+        if (err) throw err;
         callback(err, data);
     });
 };
@@ -63,68 +77,182 @@ let getConcurso = (type, param, callback) =>
     db.queryMysql(sql, (err, data) => 
     {
         if (err) throw err;        
-        callback(err, data[0]);
+        callback(err, data);
     });
-}
+};
+
+//Parea guardar/editar los datos de un concurso...
+let guardaEditaConcurso = (existeArchivo, editar, token_concurso, registros, callback) => 
+{
+    let sql = "";
+    for(let obj in registros)
+    {
+        let ejecuta = !existeArchivo && obj === "banner" ? false: true;
+        if(ejecuta)
+        {
+            if(sql != "")
+            {
+                sql += ", ";
+            }
+            sql += `${obj} = '${registros[obj]}'`;
+        }
+    }
+    if(!editar)
+    {
+        sql += `, token_concurso = '${utils.guid()}'`;
+    }
+    //console.log(sql);
+    let sqlGuarda = (!editar ? "INSERT INTO" : "UPDATE") + ` concursos SET ${sql}`;
+    if(editar)
+    {
+        sqlGuarda += ` where token_concurso = '${token_concurso}'`;
+    }
+    //console.log(sqlGuarda);
+    //Guardar el registro...                            
+    db.queryMysql(sqlGuarda, (err, response) => 
+    {
+        callback(err, response);
+    });
+};
 
 let crearConcurso = (req, callback) => 
 {
-    let data = req.body;
+    let data = req.body, 
+        token_concurso = data.token_concurso === "" ? "0" : data.token_concurso, 
+        editar = token_concurso === "0" ? false : true, 
+        existeArchivo = true;
+    //console.log("Valor del token es: " + token_concurso);
+    //console.log(req.files);
+    //Sabe si existe un archivo...    
     if (!req.files)
-    {
-        callback(true, 400);
-        //res.status(400).send('No files were uploaded.');
-        //return;
+    {        
+        callback(true, "No existe archivo para subir");        
     }
-    let directorio   = `./uploadedfiles/${req.user.idadministrador}`,
-        banner	     = `${directorio}/banner`, 
-        sampleFile   = req.files.sampleFile, 
-        extension    = sampleFile.mimetype.split("/"),
-        nombreBanner = `${utils.guid()}.${extension[1]}`,
-        uploadPath   = `${banner}/${nombreBanner}`;
-        //Directorio del administrador...
-        if (!filessystem.existsSync(directorio))
+    else
+    {
+        //Saber si llega un archivo...        
+        if(editar)
         {
-            filessystem.mkdirSync(directorio);
-        }
-        //Directorio del concurso...
-        if (!filessystem.existsSync(banner))
-        {
-            filessystem.mkdirSync(banner);
-        }
-        sampleFile.mv(uploadPath, function(err)
-        {
-            if (err)
+            if(req.files.sampleFile.name === "")
             {
-                //res.status(500).send(err);
-                callback(true, 500);
+                existeArchivo = false;
+            }
+        }
+    }    
+    let directorio      = `./uploadedfiles/${req.user.idadministrador}`,
+        banner	        = `${directorio}/banner`, 
+        sampleFile      = existeArchivo ? req.files.sampleFile : "", 
+        extension       = existeArchivo ? sampleFile.mimetype.split("/") : "",
+        nombreBanner    = existeArchivo ? `${utils.guid()}.${extension[1]}` : "",
+        uploadPath      = `${banner}/${nombreBanner}`, 
+        nombre_concurso = striptags(data.nombre_concurso), 
+        url_concurso    = striptags(data.url_concurso).toLowerCase(), 
+        fecha_inicial   = striptags(data.fecha_inicial), 
+        fecha_final     = striptags(data.fecha_final);
+        //Primero validar que los datos enviados sean válidos...
+        if(!moment(fecha_inicial, "YYYY/MM/DD").isValid() || !moment(fecha_final, "YYYY/MM/DD").isValid())
+        {
+            callback(true, "La fechas no son válidas");
+        }
+        if(existeArchivo)
+        {
+            if(extension[0].toLowerCase() !== "image")
+            {
+                callback(true, "No es una imagen válida");
+            }
+        }
+        //Saber si la url es única...
+        existeEnlace(url_concurso, token_concurso, (err, NoExiste) => 
+        {
+            if (err) throw err;            
+            if(NoExiste)
+            {
+                let registros = {
+                                    idadministrador : req.user.idadministrador,                                                         
+                                    estado :  1,
+                                    publicado : 1,
+                                    nombre_concurso : nombre_concurso,
+                                    descripcion : data.descripcion,
+                                    banner : nombreBanner,
+                                    url_concurso : url_concurso,
+                                    fecha_inicial : moment(fecha_inicial, "YYYY/MM/DD").format(), 
+                                    fecha_inicial_string : fecha_inicial,
+                                    fecha_inicial_timestamp : moment(fecha_inicial, "YYYY/MM/DD").format("x"), 
+                                    fecha_final : moment(fecha_final, "YYYY/MM/DD").format(), 
+                                    fecha_final_string : fecha_final,  
+                                    fecha_final_timestamp : moment(fecha_final, "YYYY/MM/DD").format("x"), 
+                                    fecha_creacion : fecha_actual, 
+                                    fecha_creacion_string : fecha_string,
+                                    hora_creacion_string : hora_string
+                                };
+                //Crear los directorios...
+                if(!editar)
+                {
+                    //Directorio del administrador...
+                    utils.crearDirectorio(directorio);
+                    //Directorio del concurso...
+                    utils.crearDirectorio(banner);
+                }
+                if(existeArchivo)
+                {
+                    sampleFile.mv(uploadPath, (err) => 
+                    {
+                        if (err)
+                        {                        
+                            callback(true, "Error al subir la imagen");
+                        }
+                        else
+                        {                            
+                            guardaEditaConcurso(                                                    
+                                                    existeArchivo, 
+                                                    editar, 
+                                                    token_concurso,
+                                                    registros,                                                     
+                                                    (err, response) => 
+                                                    {
+                                                        callback(false, "Registro realizado");
+                                                    }
+                                                );
+                        }
+                    });
+                }
+                else
+                {
+                    if(editar)
+                    {
+                        guardaEditaConcurso(                                                
+                                                existeArchivo,
+                                                editar, 
+                                                token_concurso, 
+                                                registros, 
+                                                (err, response) => 
+                                                {
+                                                    callback(false, "Registro realizado");
+                                                }
+                                            );
+                    }
+                }
             }
             else
             {
-                //Guardar el registro...
-                //Actualizar el valor del banner...
-                let sql = `INSERT INTO concursos 
-                            (idadministrador, token_concurso, estado, 
-                            publicado, duracion_video, 
-                            nombre_concurso, descripcion, 
-                            banner, url_concurso, 
-                            fecha_inicial, fecha_final) 
-                            VALUES ('${req.user.idadministrador}', '${utils.guid()}', '1', 
-                                    '1', '${data.duracion_video}', 
-                                    '${data.nombre_concurso}', '${data.descripcion}', 
-                                    '${nombreBanner}', '${data.url_concurso}', 
-                                    '${data.fecha_inicial}', '${data.fecha_final}')`;
-                db.queryMysql(sql, (err, response) => 
-                {
-                    callback(true, response);
-                    //res.send('File uploaded to ' + uploadPath);
-                });
+                callback(true, `La url ${url_concurso} ya está asociada a otro concurso`);
             }
-        });
+        });        
 };
+
+//Para eliminar un concurso...
+let eliminaConcurso = (token_concurso, callback) => 
+{
+    let sql = `UPDATE concursos SET estado = '2' where token_concurso = '${token_concurso}'`;
+    console.log(sql);
+    db.queryMysql(sql, (err, response) => 
+    {
+        callback(err, response);
+    });
+};
+
 module.exports.crearConcurso = crearConcurso;
 module.exports.totalRegistrosConcurso = totalRegistrosConcurso;
 module.exports.getConcurso = getConcurso;
 module.exports.listarConcursos = listarConcursos;
-
-
+module.exports.eliminaConcurso = eliminaConcurso;

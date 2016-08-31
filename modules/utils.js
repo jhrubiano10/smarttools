@@ -17,5 +17,12 @@ let crearDirectorio = (dir) =>
 	}
 };
 
+let validateEmail = (email) =>  
+{
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
+};
+
 module.exports.guid = guid;
 module.exports.crearDirectorio = crearDirectorio;
+module.exports.validateEmail = validateEmail;
