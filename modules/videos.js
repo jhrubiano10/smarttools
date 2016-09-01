@@ -4,7 +4,7 @@ const db   	        = require('./database'),
 	  utils			= require('./utils'), 
       moment        = require('moment'),
       striptags     = require('striptags'),
-      maximoPagina  = 2, 
+      maximoPagina  = 5, 
       fecha_actual  = moment().format(), 
       fecha_string  = moment().format("DD/MM/YYYY"), 
       hora_string   = moment().format("hh:mm:ss a"), 
@@ -19,7 +19,7 @@ let newVideo = (req, callback) =>
     }
     let directorio      = `./uploadedfiles/${data.idadministrador}`,
         folderVideos    = `${directorio}/videos`, 
-        extensionValida = ["avi", "wmv", "flv", "mov", "mp4"], 
+        extensionValida = ["avi", "wmv", "flv", "mov", "mp4", "webm"], 
         videoUbicacion  = {
                                 original    : `${folderVideos}/org`,
                                 convertido  : `${folderVideos}/convert`,
@@ -138,6 +138,25 @@ let newVideo = (req, callback) =>
         });
 };
 
+let totalRegistrosVideos = (token_concurso, callback) => 
+{
+    let sql = `select count(*) as numero 
+               from concursos a,  
+                    concursos_videos b
+               where a.token_concurso = '${token_concurso}' and 
+                     a.estado = 1 and 
+                     b.idconcurso = a.idconcurso and 
+                     estado_video = 3  and 
+                     error_conversion = 0`;
+    db.queryMysql(sql, (err, data) => 
+    {
+        if (err) throw err;
+        let total     = data[0].numero, 
+            numPagina = Math.ceil(total / maximoPagina);
+        callback(err, {total, maximoPagina, numPagina});
+    });
+};
+
 //LLevar el listado de vídeos...
 let listadoVideos = (req, callback) => 
 {
@@ -154,7 +173,7 @@ let listadoVideos = (req, callback) =>
                                  b.idconcurso = a.idconcurso and 
                                  b.estado = 1 and 
                                  b.estado_video = 3 and 
-                                 b.error_conversion = 0 order by b.fecha_publica limit ${numPagina}, ${maximoPagina}`;
+                                 b.error_conversion = 0 order by b.fecha_publica desc limit ${numPagina}, ${maximoPagina}`;
     db.queryMysql(sql, (err, data) => 
     {
         if (err) throw err;
@@ -162,5 +181,21 @@ let listadoVideos = (req, callback) =>
     });
 };
 
+let getVideo = (token_video, callback) => 
+{
+    let sql = `select * from concursos_videos 
+               where token_video = '${token_video}' and 
+                     estado = 1 and 
+                     error_conversion = 0 and 
+                     estado_video = 3`;
+    db.queryMysql(sql, (err, data) => 
+    {
+        if (err) throw err;
+        callback(err, data[0]);
+    });
+};
+
 module.exports.newVideo = newVideo;
+module.exports.totalRegistrosVideos = totalRegistrosVideos;
 module.exports.listadoVideos = listadoVideos;
+module.exports.getVideo = getVideo;

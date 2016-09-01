@@ -72,16 +72,7 @@ let registerPost = (req, res, next) =>
 				{
 					res.render('register');
 				}
-				loginPost(req, res, next);
 				res.json({error : false});
-				/*
-				if (err || response.affectedRows === 0)
-				{
-					//res.render('registro');
-					console.log("Error");
-				}
-				*/
-				//loginPost(req, res, next);
 			});
 		}
 	});
@@ -248,7 +239,7 @@ let eliminaConcurso  = (req, res) =>
 
 let showConcurso = (req, res) => 
 {
-	//console.log(req.params.url);
+	//console.log(req.params.new);
 	concurso.getConcurso(2, req.params.url, (err, concurso) =>
 	{
 		if(concurso)
@@ -272,20 +263,46 @@ let showConcurso = (req, res) =>
 };
 
 //Para crear un nuevo vídeo...
-let newVideo = (req, res) => 
+let vistaConcursoVideo = (req, res) => 
 {
-	/*
-	console.log(req.params.url);
-	console.log(req.params.new);
-	res.render("newvideo");
-	*/
+	let template = "";
+	if(req.params.accion === "new" || req.params.accion === "rules")
+	{
+		template = req.params.accion === "new" ? "newvideo" : "rules";
+	}
+	else
+	{
+		template = "video";
+	}
+	console.log(req.params.accion);
+	//res.render("newvideo");
 	concurso.getConcurso(2, req.params.url, (err, concurso) =>
 	{
 		if(concurso)
 		{
-			res.render("newvideo", {  
-				concurso	: concurso[0]
-			});
+			if(template !== "video")
+			{
+				res.render(template, {  
+					concurso	: concurso[0]
+				});
+			}
+			else
+			{
+				//Se debe buscar los datos del vídeo...
+				videos.getVideo(req.params.accion, (error, video) =>
+				{
+					if(video)
+					{
+						res.render(template, {  
+							concurso	: concurso[0], video
+						});
+					}
+					else
+					{
+						notFound404(req, res);
+					}
+				});
+			}
 		}
 		else
 		{
@@ -311,6 +328,15 @@ let newVideoPost = (req, res) =>
 	});
 };
 
+let numeroVideos = (req, res) => 
+{
+	//console.log("LLega a este punto DE LA PETECIÓN...");
+	videos.totalRegistrosVideos(req.params.token, (err, data) => 
+	{
+		res.json(data);
+	});
+};
+
 let listadoVideos = (req, res) => 
 {
 	videos.listadoVideos(req, (err, data) => 
@@ -318,7 +344,6 @@ let listadoVideos = (req, res) =>
 		res.json(data);
 	});
 };
-
 
 let notFound404 = (req, res) => 
 {
@@ -342,6 +367,7 @@ module.exports.eliminaConcurso = eliminaConcurso;
 module.exports.showConcurso = showConcurso;
 module.exports.notFound404 = notFound404;
 //Para el proceso de los vídeo...
-module.exports.newVideo = newVideo;
+module.exports.vistaConcursoVideo = vistaConcursoVideo;
 module.exports.newVideoPost = newVideoPost;
+module.exports.numeroVideos = numeroVideos;
 module.exports.listadoVideos = listadoVideos;

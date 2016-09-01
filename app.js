@@ -23,7 +23,7 @@ const express 			= 	require("express"),
 			if (err || response.length === 0 || !bcrypt.compareSync(password, response[0].password))
 			{
 				return done(null, false, {message: 'Usuario o contraseña no válido', username : username});
-			}
+			}			
 			return done(null, response);
 		});
 	}));
@@ -46,7 +46,7 @@ const express 			= 	require("express"),
 			if(response)
 			{
 				done(null, response[0]);
-			}
+			}			
 		});
 	});
 	//console.log(passport);
@@ -105,17 +105,21 @@ const express 			= 	require("express"),
 	//app.get('/concurso/:url/:video', rutas.listarConcursos);
 	app.get('/:url', rutas.showConcurso);
 	//Para ver si se pueden recibir dos variables...
-	app.get('/:url/:new', rutas.newVideo);
+	app.get('/:url/:accion', rutas.vistaConcursoVideo);
+	//Para las reglas de juego...
+	//app.get('/:url/:rules', rutas.rulesConcurso);
 	//Para cualquier url que no cumpla la condición...
-	//Para crear/subir un nuevo vídeo...
+	//Para crear/subir, ver detalle un nuevo vídeo...
 	app.post('/newvideo', rutas.newVideoPost);
 	//Para listar los vídeos de un concurso...
 	app.get('/getvideos/:token/:page', rutas.listadoVideos);
+	//Para saber el total de vídeos que existe en un concurso..
+	app.get('/numvideos/:token/:page', rutas.numeroVideos);
 	app.get("*", rutas.notFound404);
 	//Fin de ver...
 	//Iniciar el Servidor...
 	var server = app.listen(puerto, (err) => {
 	   if(err) throw err;
 	   var message = 'Servidor corriendo en @ http://localhost:' + server.address().port;
-	   console.log(message);
+	   console.log(message);	   
 	});

@@ -14,7 +14,7 @@ $(function()
 	{
 		var val = $(this).val().toLowerCase();
         //.avi, .wmv, .flv, .mov, .mp4
-		var regex = new RegExp("(.*?)\.(avi|wmv|flv|mov|mp4)$");
+		var regex = new RegExp("(.*?)\.(avi|wmv|flv|mov|mp4|webm)$");
 		if(!(regex.test(val)))
 		{
 			$(this).val('');

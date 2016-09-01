@@ -32,8 +32,7 @@ $(function()
             }
         }
         if(procesa)
-        {
-            //console.log(datos);
+        {            
             $.ajax(
             {
                 url 		: "/register",
@@ -49,7 +48,25 @@ $(function()
                 }
                 else
                 {
-                    window.location = "/admin";
+                    swal({
+                            title: "Registro realizado", 
+                            text: "Ahora podrás autenticarte en el sistema",
+                            type: "success", 
+                            showCancelButton: false, 
+                            confirmButtonColor: "#DD6B55", 
+                            confirmButtonText: "Ir a la página de autebticación", 
+                            cancelButtonText: "No, cancelar", 
+                            closeOnConfirm: false, 
+                            closeOnCancel: false, 
+                            showLoaderOnConfirm : true
+                        }, 
+                        function(isConfirm)
+                        {
+                            if (isConfirm)
+                            {
+                                window.location = "/login";
+                            }                            
+                        });                    
                 }
             }).error(function(request, status, error)
             {

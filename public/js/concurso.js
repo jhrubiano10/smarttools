@@ -3,12 +3,16 @@ $(function()
     console.log("Carga");
     var numeroPagina    = 0,  
         totalPagina     = 0, 
+        privado         = new factoria(), 
+        token_concurso  = privado.getData("token_concurso"),  
+        url_concurso    = privado.getData("url_concurso"),
         nomServicios    = {
                                 numvideos : {metodo : "GET"},
                                 getvideos : {metodo : "GET"}
                           };
     var consumeServicios = function(opciones, callback)
 	{
+        //debugger;
 		var servicio = {
 							url 	: opciones.servicio,
 							metodo	: nomServicios[opciones.servicio].metodo,
@@ -18,13 +22,14 @@ $(function()
         {
             if(servicio.metodo === "GET")
             {
-                servicio.url += "/" + opciones.data;
+                servicio.url += "/" + token_concurso + "/" + opciones.data;
             }
             else
             {
                 servicio.datos = JSON.stringify(opciones.data);   
             }
         }
+        console.log(servicio.url);
 		//Invocar el servicio...
 		$.ajax(
 		{
@@ -38,54 +43,79 @@ $(function()
             callback(data);
 		}).error(function(request, status, error)
         {
-            //alert(request.responseText);
-            //window.location = "/";
             sweetAlert("Error", request.responseText, "error");
 		});
 	};
 
     var muestraListadoConcursos = function(data)
     {
-        console.log(data); 
+        console.log(data);
+        var table = "<table class = 'table table-striped'><tbody>";
+        /*
+        
+        
+        
+<tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>
+                            Nada
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>Moe</td>
+                        
+                    </tr>
+                    <tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>Dooley</td>
+                    </tr>
+                    </tbody>
+                </table>" 
+                */
+        /*
         var table = "<table class = 'table'>" + 
                     "<thead>" + 
                     "<tr>" +
-                    "<th>Concurso</th>" +
-                    "<th>Fecha Inicio</th>" +
-                    "<th>Fecha Final</th>" +
-                    "<th></th>" +
+                    "<th>Vídeo</th>" +
+                    "<th>Fecha de Subida</th>" +
                     "</tr>" +
                     "</thead><tbody>";
-        //OPCIÓN TEMPORAL PARA SIMULAR LAS OPCIONES...
-        var tmpOpciones = "<div class='btn-group'>" + 
-        "<button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>" +
-         "   Opciones <span class='caret'></span>" +
-        "</button>" +
-        "<ul class='dropdown-menu pull-right'>" +
-         "   <li><a href='#'>Editar</a></li>" +
-          "  <li><a href='#'>Eliminar</a></li>" +
-           " <li><a href='#'>Publicar</a></li>" +
-            "<li role='separator' class='divider'></li>" +
-            "<li><a href='#'>Copiar URL</a></li>" +
-        "</ul>" +
-        "</div>";
-        //FIN DE SIMULAR LAS OPCIONES...
-        
+        */
         for(var i = 0; i < data.length; i++)
         {
-            var fecha = new Date(data[i].fecha_final);
-            //Para llamar la opción de editar...
-            //newconcurso/"+(data[i].token_concurso)+"
-
+            var urlVideo = "/" + url_concurso + "/" + data[i].token_video;
+            var txt = "<span style = 'font-size: 1.4em;'><a href = '"+(urlVideo)+"' style = 'color: #2196f3;'>" + data[i].titulo_video + 
+                      "</a></span><br><span style = 'font-size: 0.7em;'>Por: " + 
+                      data[i].nombre_usuario + " (<a href = 'mailto:"+(data[i].email)+"' style = 'color: #2196f3;'>"+(data[i].email)+"</a>)<br>" + 
+                      "Agregado el día: " + (data[i].fecha_publica_string)+" - "+(data[i].hora_publica) + 
+                      "</span>";
+            //<img src="cinqueterre.jpg" class="img-thumbnail" alt="Cinque Terre" width="304" height="236">
+            table += "<tr><td width = '20%'><center>" + 
+                     "<a href = '"+(urlVideo)+"'><img src = '/static/"+(data[i].idadministrador)+"/videos/thumbnail/"+(data[i].token_archivo)+".png' class = 'img-thumbnail' width = '100' height = '100' border = '0'></a>" + 
+                     "<center></td>" + 
+                     "<td>" + (txt) + "</td></tr>";
+            /*
             table += "<tr>" + 
-                    "<td><h5><a href = '/"+(data[i].url_concurso)+"' target = '_blank'>"+(data[i].nombre_concurso)+"</a></h5></td>" + 
-                    "<td>"+(fecha)+"</td>" +
-                    "<td>"+(data[i].fecha_inicial)+"</td>" +
-                    "<td>"+(tmpOpciones)+"</td>" +
-                    "</tr>";
+                     "<td>"+(data[i].titulo_video)+"</td>" + 
+                     "<td><span class = 'small'>"+(data[i].fecha_publica_string)+" - "+(data[i].hora_publica)+"</span></td>" +
+                     "</tr>";
+            */
         }
         table += "</tbody></table>";
-        $("#concursos").html(table);
+        $("#videos").html(table);
         //numeroPagina
         /*
         <!-- Single button -->
@@ -101,6 +131,40 @@ $(function()
             <li><a href="#">Separated link</a></li>
         </ul>
         </div>
+        */
+
+        /*
+        <table class="table table-striped">
+                    <tbody>
+                    <tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>
+                            Nada
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>Moe</td>
+                        
+                    </tr>
+                    <tr>
+                        <td width = "20%">
+                            <center>
+                                <img src="http://placehold.it/100x100" alt="">
+                            <center>
+                        </td>
+                        <td>Dooley</td>
+                    </tr>
+                    </tbody>
+                </table>
         */
 
 
@@ -141,12 +205,13 @@ $(function()
     };
 
     //Para traer los concurso...
+    $("#videos").html("<div align = 'center'><img src = 'img/loader.gif' border = '0'/></div>");
     var listadoDeConcursos = function(page)
     {
         if(page > 0 && page <= totalPagina)
         {
-            $("#concursos").html("<div align = 'center'><img src = 'img/loader.gif' border = '0'/></div>");
-            consumeServicios({servicio : "listarconcursos", data : page}, function(data)
+            $("#videos").html("<div align = 'center'><img src = 'img/loader.gif' border = '0'/></div>");
+            consumeServicios({servicio : "getvideos", data : page}, function(data)
             {
                 muestraListadoConcursos(data);
                 //Para poner la página donde debe estar...
@@ -182,47 +247,55 @@ $(function()
     var numeroConcursos = (function numeroConcursos()
     {
         numeroPagina = 0;
-        consumeServicios({servicio : "numconcursos"}, function(data)
+        consumeServicios({servicio : "numvideos", data : 1}, function(data)
         {
-            //console.log(data);
+            console.log(data);
             totalPagina = data.numPagina;
-            $("#paginar").html("<nav aria-label = 'Page navigation'><ul class = 'pagination'></ul></nav>");
-            var valor = ""; 
-            for(var i = 0; i <= data.numPagina + 1; i++)
+            if(data.numPagina !== 0)
             {
-                if(i === 0 || i === data.numPagina + 1)
+                $("#paginar").html("<nav aria-label = 'Page navigation'><ul class = 'pagination'></ul></nav>");
+                var valor = ""; 
+                for(var i = 0; i <= data.numPagina + 1; i++)
                 {
-                    valor = "<li class = '"+(i === 0 ? "disabled" : "")+"'>" + 
-                            "<a href = '#' aria-label = '"+(i === 0 ? "Previous" : "Next")+"'>" + 
-                            "<span aria-hidden = 'true'>"+(i === 0 ? "&laquo;" : "&raquo;")+" </span>" + 
-                            "</a>" + 
-                            "</li>";
-                }
-                else
-                {
-                    valor = "<li class = '"+(i === 1 ? "active" : "")+"'><a href = 'javascript:;'>"+(i)+"</a></li>";   
-                }
-                $(".pagination").append(valor);
-                $(".pagination > li > a:eq("+i+")").click(function(e)
-                {
-                    if(!$(this).attr("aria-label"))
+                    if(i === 0 || i === data.numPagina + 1)
                     {
-                        if(!$(this).parent().hasClass("active"))
-                        {
-                            listadoDeConcursos(Number($(this).text()));
-                        }
+                        valor = "<li class = '"+(i === 0 ? "disabled" : "")+"'>" + 
+                                "<a href = 'javascript:;' aria-label = '"+(i === 0 ? "Previous" : "Next")+"'>" + 
+                                "<span aria-hidden = 'true'>"+(i === 0 ? "&laquo;" : "&raquo;")+" </span>" + 
+                                "</a>" + 
+                                "</li>";
                     }
                     else
                     {
-                        if(!$(this).parent().hasClass("disabled"))
-                        {
-                            listadoDeConcursos(numeroPagina + ($(this).attr("aria-label") === "Previous" ? -1 : 1));
-                        }
+                        valor = "<li class = '"+(i === 1 ? "active" : "")+"'><a href = 'javascript:;'>"+(i)+"</a></li>";   
                     }
-                });
+                    $(".pagination").append(valor);
+                    $(".pagination > li > a:eq("+i+")").click(function(e)
+                    {
+                        if(!$(this).attr("aria-label"))
+                        {
+                            if(!$(this).parent().hasClass("active"))
+                            {
+                                listadoDeConcursos(Number($(this).text()));
+                            }
+                        }
+                        else
+                        {
+                            if(!$(this).parent().hasClass("disabled"))
+                            {
+                                listadoDeConcursos(numeroPagina + ($(this).attr("aria-label") === "Previous" ? -1 : 1));
+                            }
+                        }
+                    });
+                }
+                //Traer los primeros concursos...
+                listadoDeConcursos(1);
             }
-            //Traer los primeros concursos...
-            listadoDeConcursos(1);
+            else
+            {
+                $("#videos").html("<center><h3>No hay vídeos cargados en el momento</h3></center>");
+                $("#paginar").html("");
+            }         
         });
         return numeroConcursos;
     })();

@@ -24,3 +24,8 @@ exports.queryMysql = (sql, callback) =>
 		callback(err, rows);
 	});
 };
+
+exports.closeConection = () => 
+{
+    conexion.end();
+};
