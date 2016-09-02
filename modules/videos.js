@@ -211,10 +211,10 @@ let listadoVideosAdmin = (req, callback) =>
     let sql = `select a.idconcurso, a.nombre_concurso, c.idadministrador, c.nombre_empresa, b.idvideo,
                       b.token_video, b.token_archivo, 
                       b.titulo_video, b.nombre_usuario, b.email, 
-                      b.fecha_publica, b.fecha_publica_string, b.hora_publica, a.url_concurso
-                      from concursos a, concursos_videos b, administrador_empresa c  
+                      b.fecha_publica, b.fecha_publica_string, b.hora_publica, a.url_concurso, d.nombre_estado
+                      from concursos a, concursos_videos b, administrador_empresa c, estado_video d   
                         where c.idadministrador = a.idadministrador and b.idadministrador = a.idadministrador and 
-                        a.idadministrador = ${id_admin} and b.idconcurso = a.idconcurso order by b.fecha_publica desc limit ${numPagina}, ${maximoPagina}`;
+                        a.idadministrador = ${id_admin} and b.idconcurso = a.idconcurso and d.estado_video=b.estado_video order by b.fecha_publica desc limit ${numPagina}, ${maximoPagina}`;
     db.queryMysql(sql, (err, data) => 
     {
         if (err) throw err;

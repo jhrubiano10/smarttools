@@ -1,6 +1,6 @@
 $(function()
 {
-    console.log("Carga");
+    //console.log("Carga");
     var numeroPagina    = 0,  
         totalPagina     = 0, 
         privado         = new factoriaAdminVideos(), 
@@ -33,7 +33,7 @@ $(function()
                 servicio.datos = JSON.stringify(opciones.data);   
             }
         }
-        console.log(servicio.url);
+        //console.log(servicio.url);
 		//Invocar el servicio...
 		$.ajax(
 		{
@@ -53,7 +53,7 @@ $(function()
 
     var muestraListadoVideos = function(data)
     {
-        console.log(data);
+        //console.log(data);
         var table = "<table class = 'table table-striped'><tbody>";
      
         var opciones = "<div class='btn-group'>" + 
@@ -63,10 +63,10 @@ $(function()
                        "<ul class = 'dropdown-menu pull-right' id = 'video_TOKENVIDEO'>" +
                        "<li><a href='javascript:;' type = 'del'>Eliminar</a></li>" +                       
                        "</ul></div>";
-        var table = "<table class = 'table'>" + 
+        var table = "<table class = 'table' id='admin-table-videos'>" + 
                     "<thead>" + 
                     "<tr>" +
-                    "<th></th>" +
+                    "<th id='state-video'>Estado</th>" +
                     "<th></th>" +
                     "<th></th>" +
                     "</tr>" +
@@ -84,9 +84,8 @@ $(function()
                       "Pertenece al concurso: " + (data[i].nombre_concurso)+ "<br>" + 
                       "Agregado el día: " + (data[i].fecha_publica_string)+" - "+(data[i].hora_publica) + 
                       "</span>";
-            var tr = "<tr><td width = '20%'><center>" + 
-                     "<a href = '"+(urlVideo)+"'><img src = '/static/"+(data[i].idadministrador)+"/videos/thumbnail/"+(data[i].token_archivo)+".png' class = 'img-thumbnail' width = '100' height = '100' border = '0'></a>" + 
-                     "<center></td>" + 
+            var tr = "<tr><td width = '20%' class='state-video'><center>" + 
+                     data[i].nombre_estado+ "</center></td>" + 
                      "<td>" + (txt) + "</td>"+ "<td>"+opcTr+ "</td>"+"</tr>";
             $("#concursos tbody").append(tr);
                         
@@ -139,6 +138,50 @@ $(function()
                 }
             });
         }
+
+        $(document).ready(function() {
+            // Setup - add a text input to each footer cell
+            var title = $('#admin-table-videos thead #state-video').text();
+            $('#admin-table-videos thead #state-video').html( '<input type="text" id="search" placeholder="Buscar '+title+'" />' );
+
+                // DataTable
+         //   var tableVideos = $('#admin-table-videos').DataTable();
+         
+            // Apply the search
+         
+                $( '#search').keyup(function () {
+                    var value = $(this).val();
+
+                    if (value.length){
+                        $("table tr").each(function (index) {
+                            if (index != 0) {
+
+                                $row = $(this);
+
+                                $row.find("td.state-video").each(function () {
+
+                                var cell = $(this).text();
+
+                                if (cell.indexOf(value) < 0) {
+                                    $row.hide();
+                                } else {
+                                    $row.show();
+                                    return false; //Once it's shown you don't want to hide it on the next cell
+                            }
+
+                        });
+                    }
+                });
+                }
+                else{
+                    //if empty search text, show all rows
+                    $("table tr").show();
+
+                }
+                });
+            
+        }
+        );
         //table += "</tbody></table>";
         //$("#videos").html(table);
 
@@ -157,6 +200,7 @@ $(function()
                 //Para poner la página donde debe estar...
                 if(page === 1)
                 {
+                    
                     $(".pagination > li:eq(0)").addClass("disabled");
                     $(".pagination > li:eq("+(totalPagina + 1)+")").removeClass("disabled");
                 }
@@ -178,7 +222,7 @@ $(function()
                     $(".pagination > li:eq("+(numeroPagina)+")").removeClass("active");
                 }
                 numeroPagina = page;
-                console.log(numeroPagina);
+                
             });
         }
     };
@@ -193,7 +237,7 @@ $(function()
             
             totalPagina = data.numPagina;
             if(data.numPagina !== 0)
-            {
+            {                            
                 $("#paginar").html("<nav aria-label = 'Page navigation'><ul class = 'pagination'></ul></nav>");
                 var valor = ""; 
                 for(var i = 0; i <= data.numPagina + 1; i++)
@@ -201,7 +245,7 @@ $(function()
                     if(i === 0 || i === data.numPagina + 1)
                     {
                         valor = "<li class = '"+(i === 0 ? "disabled" : "")+"'>" + 
-                                "<a href = 'javascript:;' aria-label = '"+(i === 0 ? "Previous" : "Next")+"'>" + 
+                                "<a href = '#' aria-label = '"+(i === 0 ? "Previous" : "Next")+"'>" + 
                                 "<span aria-hidden = 'true'>"+(i === 0 ? "&laquo;" : "&raquo;")+" </span>" + 
                                 "</a>" + 
                                 "</li>";
@@ -234,6 +278,7 @@ $(function()
             }
             else
             {
+                console.log("Estoy dejando vacio el pagination!!!!!");
                 $("#videos").html("<center><h3>No hay vídeos cargados en el momento</h3></center>");
                 $("#paginar").html("");
             }         
