@@ -150,7 +150,7 @@ $(function()
             // Apply the search
          
                 $( '#search').keyup(function () {
-                    var value = $(this).val();
+                    var value = $(this).val().toUpperCase();
 
                     if (value.length){
                         $("table tr").each(function (index) {
@@ -160,7 +160,7 @@ $(function()
 
                                 $row.find("td.state-video").each(function () {
 
-                                var cell = $(this).text();
+                                var cell = $(this).text().toUpperCase();
 
                                 if (cell.indexOf(value) < 0) {
                                     $row.hide();
