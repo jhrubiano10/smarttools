@@ -157,6 +157,27 @@ let totalRegistrosVideos = (token_concurso, callback) =>
     });
 };
 
+// videos por parte del administrador
+
+let totalRegistrosVideosAdmin = (id_admin, callback) => 
+{
+    
+    let sql = `select count(*) as numero 
+               from concursos a,  
+                    concursos_videos b 
+               where a.idadministrador = '${id_admin}' and 
+                     b.idconcurso = a.idconcurso`;
+    
+    db.queryMysql(sql, (err, data) => 
+    {
+        if (err) throw err;
+        let total     = data[0].numero, 
+            numPagina = Math.ceil(total / maximoPagina);
+        callback("", {total, maximoPagina, numPagina});
+    });
+};
+
+
 //LLevar el listado de vídeos...
 let listadoVideos = (req, callback) => 
 {
@@ -181,6 +202,37 @@ let listadoVideos = (req, callback) =>
     });
 };
 
+//LLevar el listado de todos los vídeos de los concursos de una empresa
+
+let listadoVideosAdmin = (req, callback) => 
+{
+    let numPagina       = maximoPagina * (req.params.page - 1),
+        id_admin  = req.params.idAdmin;
+    let sql = `select a.idconcurso, a.nombre_concurso, c.idadministrador, c.nombre_empresa, b.idvideo,
+                      b.token_video, b.token_archivo, 
+                      b.titulo_video, b.nombre_usuario, b.email, 
+                      b.fecha_publica, b.fecha_publica_string, b.hora_publica, a.url_concurso
+                      from concursos a, concursos_videos b, administrador_empresa c  
+                        where c.idadministrador = a.idadministrador and b.idadministrador = a.idadministrador and 
+                        a.idadministrador = ${id_admin} and b.idconcurso = a.idconcurso order by b.fecha_publica desc limit ${numPagina}, ${maximoPagina}`;
+    db.queryMysql(sql, (err, data) => 
+    {
+        if (err) throw err;
+        callback(err, data);
+    });
+};
+
+//Para eliminar un video...
+let eliminarvideo = (id_video, callback) => 
+{
+    let sql = `DELETE from concursos_videos where idvideo = '${id_video}'`;
+    console.log(sql);
+    db.queryMysql(sql, (err, response) => 
+    {
+        callback(err, response);
+    });
+};
+
 let getVideo = (token_video, callback) => 
 {
     let sql = `select * from concursos_videos 
@@ -197,5 +249,8 @@ let getVideo = (token_video, callback) =>
 
 module.exports.newVideo = newVideo;
 module.exports.totalRegistrosVideos = totalRegistrosVideos;
+module.exports.totalRegistrosVideosAdmin = totalRegistrosVideosAdmin;
 module.exports.listadoVideos = listadoVideos;
+module.exports.listadoVideosAdmin = listadoVideosAdmin;
 module.exports.getVideo = getVideo;
+module.exports.eliminarvideo = eliminarvideo;

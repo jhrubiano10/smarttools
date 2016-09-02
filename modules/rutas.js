@@ -22,9 +22,25 @@ let admin = (req, res) =>
     }
     else
     {
-		//console.log(req.user.identificacion);
+		//console.log(req.user);
         //var user = req.user;
 		res.render("admin", { 
+			data	:  req.user
+		});
+    }
+}
+
+let adminvideos = (req, res) => 
+{
+	if(!req.isAuthenticated())
+    {
+        res.redirect('/login');
+    }
+    else
+    {
+		//console.log(req.user);
+        //var user = req.user;
+		res.render("adminvideos", { 
 			data	:  req.user
 		});
     }
@@ -237,6 +253,23 @@ let eliminaConcurso  = (req, res) =>
 	}
 };
 
+let eliminarvideo  = (req, res) => 
+{
+	
+	if(!req.isAuthenticated())
+    {        
+        res.json({error: true, data : "No está autenticado"});
+    }
+	else
+	{
+	
+		videos.eliminarvideo(req.params.idVideo, (err, data) => 
+		{
+			res.json({error:false, data});
+		});
+	}
+};
+
 let showConcurso = (req, res) => 
 {
 	//console.log(req.params.new);
@@ -337,6 +370,18 @@ let numeroVideos = (req, res) =>
 	});
 };
 
+
+let numeroVideosAdmin = (req, res) => 
+{
+	//console.log("LLega a este punto DE LA PETECIÓN...");
+	videos.totalRegistrosVideosAdmin(req.params.idAdmin, (err, data) => 
+	{
+
+		res.json(data);
+	});
+};
+
+
 let listadoVideos = (req, res) => 
 {
 	videos.listadoVideos(req, (err, data) => 
@@ -344,6 +389,15 @@ let listadoVideos = (req, res) =>
 		res.json(data);
 	});
 };
+
+let listadoVideosAdmin = (req, res) => 
+{
+	videos.listadoVideosAdmin(req, (err, data) => 
+	{
+		res.json(data);
+	});
+};
+
 
 let notFound404 = (req, res) => 
 {
@@ -353,6 +407,7 @@ let notFound404 = (req, res) =>
 //Exportar las rutas...
 module.exports.index = index;
 module.exports.admin = admin;
+module.exports.adminvideos = adminvideos;
 module.exports.login = login;
 module.exports.logout = logout;
 module.exports.register = register;
@@ -370,4 +425,7 @@ module.exports.notFound404 = notFound404;
 module.exports.vistaConcursoVideo = vistaConcursoVideo;
 module.exports.newVideoPost = newVideoPost;
 module.exports.numeroVideos = numeroVideos;
+module.exports.numeroVideosAdmin = numeroVideosAdmin;
 module.exports.listadoVideos = listadoVideos;
+module.exports.listadoVideosAdmin = listadoVideosAdmin;
+module.exports.eliminarvideo = eliminarvideo;

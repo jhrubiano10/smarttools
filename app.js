@@ -80,6 +80,7 @@ const express 			= 	require("express"),
 	//Rutas/Servicios REST
 	app.get("/", rutas.index);
 	app.get("/admin", rutas.admin);
+	app.get("/adminvideos", rutas.adminvideos);
 	//Para el Login...
 	app.get("/login", rutas.login);
 	app.get("/logout", rutas.logout);
@@ -101,6 +102,8 @@ const express 			= 	require("express"),
 	app.get('/listarconcursos/:page', rutas.listarConcursos);
 	//Para eliminar un concurso...
 	app.delete('/eliminaconcurso/:token', rutas.eliminaConcurso);
+	//Para eliminar un video
+	app.delete('/eliminarvideo/:idVideo', rutas.eliminarvideo);
 	//Para mostrar el concurso...
 	//app.get('/concurso/:url/:video', rutas.listarConcursos);
 	app.get('/:url', rutas.showConcurso);
@@ -113,8 +116,12 @@ const express 			= 	require("express"),
 	app.post('/newvideo', rutas.newVideoPost);
 	//Para listar los vídeos de un concurso...
 	app.get('/getvideos/:token/:page', rutas.listadoVideos);
+	//Para listar todos los vídeos de una empresa en sus concursos
+	app.get('/getvideosAdmin/:idAdmin/:page', rutas.listadoVideosAdmin);
 	//Para saber el total de vídeos que existe en un concurso..
 	app.get('/numvideos/:token/:page', rutas.numeroVideos);
+	//Para saber el total de vídeos que tiene un adminsitrador
+	app.get('/numvideosAdmin/:idAdmin/:page', rutas.numeroVideosAdmin);
 	app.get("*", rutas.notFound404);
 	//Fin de ver...
 	//Iniciar el Servidor...
